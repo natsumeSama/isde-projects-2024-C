@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <style>
+        .large-front-thumbnail {
+            position: relative;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+    </style>
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <img class="large-front-thumbnail"
+                     src="{{ 'static/imagenet_subset/'+image_id }} "
+                     alt={{ image_id }}/>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card">
+                <div class="row">
+                    <canvas id="histograme" width="800" height="400" style="margin: auto; padding: 20px;"></canvas>
+                    <div class="align-items-center">
+                        <h2 id="waitText"></h2>
+                        </div>
+                    </div>
+                </div>
+                <a class="btn btn-primary" href="/image_histogrames" role="button">Back</a>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const img = document.querySelector(".large-front-thumbnail");
+    const histCanvas = document.getElementById("histograme");
+    const histCtx = histCanvas.getContext("2d");
+
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d");
+
+    let chart = null;
+
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+        tempCanvas.width = image.width;
+        tempCanvas.height = image.height;
+        tempCtx.drawImage(image, 0, 0);
+
+        const imageData = tempCtx.getImageData(0, 0, image.width, image.height);
+        const data = imageData.data;
+
+        const histogram = new Array(256).fill(0);
+        for (let i = 0; i < data.length; i += 4) {
+            const gray = Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3);
+            histogram[gray]++;
+        }
+
+        if (chart) chart.destroy();
+
+        chart = new Chart(histCtx, {
+            type: 'bar',
+            data: {
+                labels: [...Array(256).keys()],
+                datasets: [{
+                    data: histogram,
+                    backgroundColor: 'rgba(80, 80, 80, 0.8)'
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { display: false },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    };
+
+    image.src = img.src.trim();
+});
+</script>
+
+{% endblock %}
+
