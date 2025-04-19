@@ -7,6 +7,7 @@ class Configuration:
     """Contains the configuration information for the app."""
 
     # classification
+    upload_image_folder_path = os.path.join(project_root, "static/uploads")
     image_folder_path = os.path.join(project_root, "static/imagenet_subset")
     models = (
         "resnet18",
