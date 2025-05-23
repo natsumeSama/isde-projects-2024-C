@@ -43,7 +43,7 @@
 document.getElementById('downloadPlotBtn').addEventListener('click', function() {
     var canvas = document.getElementById('classificationOutput');
     var link = document.createElement('a');
-    link.download = '{{ image_id }}_plot.png';  // <-- nom dynamique ici
+    link.download = '{{ image_id }}_plot.png';  
     link.href = canvas.toDataURL('image/png');
     link.click();
 });

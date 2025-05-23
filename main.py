@@ -50,13 +50,13 @@ async def request_classification(request: Request):
     {
         "request": request,
         "image_id": image_id,
-        "model_id": model_id,  # 👈 ajoute ça
+        "model_id": model_id,  
         "classification_scores": json.dumps(classification_scores),
     },
 )
 
 
-# ➤ À ajouter tout en bas de main.py
+
 
 from fastapi.responses import JSONResponse
 
@@ -66,7 +66,7 @@ async def download_json(image_id: str):
     return JSONResponse(content=classification_scores, media_type="application/json")
 from fastapi.responses import JSONResponse
 
-# Cette fonction récupère les scores et les retourne sous forme de JSON
+
 @app.get("/download_results/{image_id}")
 async def download_results(image_id: str, model_id: str):
     classification_scores = classify_image(model_id=model_id, img_id=image_id)
