@@ -7,8 +7,6 @@ from app.config import Configuration
 from app.forms.classification_form import ClassificationForm
 from app.ml.classification_utils import classify_image
 from app.utils import list_images
-
-
 app = FastAPI()
 config = Configuration()
 
@@ -48,10 +46,29 @@ async def request_classification(request: Request):
     model_id = form.model_id
     classification_scores = classify_image(model_id=model_id, img_id=image_id)
     return templates.TemplateResponse(
-        "classification_output.html",
-        {
-            "request": request,
-            "image_id": image_id,
-            "classification_scores": json.dumps(classification_scores),
-        },
-    )
+    "classification_output.html",
+    {
+        "request": request,
+        "image_id": image_id,
+        "model_id": model_id,  # 👈 ajoute ça
+        "classification_scores": json.dumps(classification_scores),
+    },
+)
+
+
+# ➤ À ajouter tout en bas de main.py
+
+from fastapi.responses import JSONResponse
+
+@app.get("/download/json/{image_id}")
+async def download_json(image_id: str):
+    classification_scores = classify_image(image_id)
+    return JSONResponse(content=classification_scores, media_type="application/json")
+from fastapi.responses import JSONResponse
+
+# Cette fonction récupère les scores et les retourne sous forme de JSON
+@app.get("/download_results/{image_id}")
+async def download_results(image_id: str, model_id: str):
+    classification_scores = classify_image(model_id=model_id, img_id=image_id)
+    return JSONResponse(content=classification_scores)
+
