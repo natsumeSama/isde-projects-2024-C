@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Apply Image Transformation</h2>
+<form method="post" action="/transformations">
+    <div class="form-group">
+        <label for="image_id">Select an image</label>
+        <select name="image_id" class="form-control">
+            {% for image in images %}
+            <option value="{{ image }}">{{ image }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Color (default 1.0)</label>
+        <input type="number" step="0.1" name="color" value="1.0" class="form-control">
+    </div>
+    <div class="form-group">
+        <label>Brightness (default 1.0)</label>
+        <input type="number" step="0.1" name="brightness" value="1.0" class="form-control">
+    </div>
+    <div class="form-group">
+        <label>Contrast (default 1.0)</label>
+        <input type="number" step="0.1" name="contrast" value="1.0" class="form-control">
+    </div>
+    <div class="form-group">
+        <label>Sharpness (default 1.0)</label>
+        <input type="number" step="0.1" name="sharpness" value="1.0" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Transform</button>
+</form>
+{% endblock %}

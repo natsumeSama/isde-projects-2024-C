@@ -7,6 +7,7 @@ from app.config import Configuration
 from app.forms.classification_form import ClassificationForm
 from app.ml.classification_utils import classify_image
 from app.utils import list_images
+import os
 
 
 app = FastAPI()
@@ -53,5 +54,49 @@ async def request_classification(request: Request):
             "request": request,
             "image_id": image_id,
             "classification_scores": json.dumps(classification_scores),
+        },
+    )
+
+from fastapi import Form
+from fastapi.responses import FileResponse
+from PIL import Image, ImageEnhance
+
+@app.get("/transformations", response_class=HTMLResponse)
+def show_transformation_form(request: Request):
+    return templates.TemplateResponse(
+        "transformation_form.html",
+        {
+            "request": request,
+            "images": list_images(),
+        },
+    )
+
+
+@app.post("/transformations", response_class=HTMLResponse)
+async def apply_transformation(
+    request: Request,
+    image_id: str = Form(...),
+    color: float = Form(...),
+    brightness: float = Form(...),
+    contrast: float = Form(...),
+    sharpness: float = Form(...),
+):
+    image_path = os.path.join(config.image_folder_path, image_id)
+    img = Image.open(image_path)
+
+    img = ImageEnhance.Color(img).enhance(color)
+    img = ImageEnhance.Brightness(img).enhance(brightness)
+    img = ImageEnhance.Contrast(img).enhance(contrast)
+    img = ImageEnhance.Sharpness(img).enhance(sharpness)
+
+    output_path = os.path.join("app", "static", "transformed_image.jpeg")
+    img.save(output_path)
+
+    return templates.TemplateResponse(
+        "transformation_result.html",
+        {
+            "request": request,
+            "original_image": image_id,
+            "transformed_image": "transformed_image.jpeg",
         },
     )

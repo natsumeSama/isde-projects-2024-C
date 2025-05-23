@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Transformed Image</h2>
+
+<h4>Original:</h4>
+<img src="/static/imagenet_subset/{{ original_image }}" class="img-fluid"/>
+
+<h4>Transformed:</h4>
+<img src="/static/{{ transformed_image }}" class="img-fluid" />
+
+<a class="btn btn-secondary mt-3" href="/transformations">Try another</a>
+{% endblock %}
