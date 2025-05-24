@@ -1,12 +1,14 @@
 import json
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, Form
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.config import Configuration
 from app.forms.classification_form import ClassificationForm
-from app.ml.classification_utils import classify_image
+from app.forms.upload_form import UploadClassificationForm
+from app.ml.classification_utils import classify_image, classify_upload_image
 from app.utils import list_images
+from PIL import Image, ImageEnhance
 import os
 
 
@@ -41,6 +43,25 @@ def create_classify(request: Request):
     )
 
 
+@app.get("/upload")
+def create_classify(request: Request):
+    return templates.TemplateResponse(
+        "upload_classification_select.html",
+        {"request": request, "images": list_images(), "models": Configuration.models},
+    )
+
+
+@app.get("/transformations", response_class=HTMLResponse)
+def show_transformation_form(request: Request):
+    return templates.TemplateResponse(
+        "transformation_form.html",
+        {
+            "request": request,
+            "images": list_images(),
+        },
+    )
+
+
 @app.post("/classifications")
 async def request_classification(request: Request):
     form = ClassificationForm(request)
@@ -57,17 +78,20 @@ async def request_classification(request: Request):
         },
     )
 
-from fastapi import Form
-from fastapi.responses import FileResponse
-from PIL import Image, ImageEnhance
 
-@app.get("/transformations", response_class=HTMLResponse)
-def show_transformation_form(request: Request):
+@app.post("/upload")
+async def request_classification(request: Request):
+    form = UploadClassificationForm(request)
+    await form.load_data()
+    image_id = form.image_id
+    model_id = form.model_id
+    classification_scores = classify_upload_image(model_id=model_id, img_id=image_id)
     return templates.TemplateResponse(
-        "transformation_form.html",
+        "upload_classification_output.html",
         {
             "request": request,
-            "images": list_images(),
+            "image_id": image_id,
+            "classification_scores": json.dumps(classification_scores),
         },
     )
 
