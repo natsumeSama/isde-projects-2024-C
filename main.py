@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 from app.config import Configuration
 from app.forms.classification_form import ClassificationForm
 from app.forms.upload_form import UploadClassificationForm
+from app.forms.image_histograme_form import ImageHistogrameForm
 from app.ml.classification_utils import classify_image, classify_upload_image
 from app.utils import list_images
 from PIL import Image, ImageEnhance
@@ -74,6 +75,14 @@ async def download_results(image_id: str, model_id: str):
     return JSONResponse(content=classification_scores)
 
 
+@app.get("/image_histogrames")
+def create_classify(request: Request):
+    return templates.TemplateResponse(
+        "image_histograme_select.html",
+        {"request": request, "images": list_images()},
+    )
+
+
 @app.post("/classifications")
 async def request_classification(request: Request):
     form = ClassificationForm(request)
@@ -135,5 +144,19 @@ async def apply_transformation(
             "request": request,
             "original_image": image_id,
             "transformed_image": "transformed_image.jpeg",
+        },
+    )
+
+
+@app.post("/image_histogrames")
+async def request_classification(request: Request):
+    form = ImageHistogrameForm(request)
+    await form.load_data()
+    image_id = form.image_id
+    return templates.TemplateResponse(
+        "image_histograme_output.html",
+        {
+            "request": request,
+            "image_id": image_id,
         },
     )
