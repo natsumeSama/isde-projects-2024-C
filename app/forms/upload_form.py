@@ -14,7 +14,9 @@ class UploadClassificationForm:
         form = await self.request.form()
         image = form.get("uploadImage")
         self.image_id = image.filename
-        shutil.rmtree("app/static/uploads")
+        if os.path.exists("app/static/uploads"):
+            shutil.rmtree("app/static/uploads")
+
         os.makedirs("app/static/uploads", exist_ok=True)
         with open("app/static/uploads/" + self.image_id, "wb") as f:
             shutil.copyfileobj(image.file, f)
