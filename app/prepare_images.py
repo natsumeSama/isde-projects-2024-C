@@ -14,6 +14,8 @@ from config import Configuration
 def prepare_images():
     """Downloads a subset of the Imagenet Dataset."""
     img_folder = Configuration().image_folder_path
+    print(f"Image folder path: {img_folder}")
+
     if not os.path.exists(img_folder):
         zip_url = (
             "https://github.com/EliSchwartz/"
@@ -23,6 +25,7 @@ def prepare_images():
             with ZipFile(BytesIO(zipresp.read())) as zfile:
                 zfile.extractall(img_folder)
     sub_dir = os.path.join(img_folder, "imagenet-sample-images-master")
+
     if os.path.exists(sub_dir):
         files = os.listdir(sub_dir)
         for f in files:

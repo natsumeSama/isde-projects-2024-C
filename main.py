@@ -1,6 +1,6 @@
 import json
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.config import Configuration
@@ -62,6 +62,18 @@ def show_transformation_form(request: Request):
     )
 
 
+@app.get("/download/json/{image_id}")
+async def download_json(image_id: str):
+    classification_scores = classify_image(image_id)
+    return JSONResponse(content=classification_scores, media_type="application/json")
+
+
+@app.get("/download_results/{image_id}")
+async def download_results(image_id: str, model_id: str):
+    classification_scores = classify_image(model_id=model_id, img_id=image_id)
+    return JSONResponse(content=classification_scores)
+
+
 @app.post("/classifications")
 async def request_classification(request: Request):
     form = ClassificationForm(request)
@@ -74,6 +86,7 @@ async def request_classification(request: Request):
         {
             "request": request,
             "image_id": image_id,
+            "model_id": model_id,
             "classification_scores": json.dumps(classification_scores),
         },
     )

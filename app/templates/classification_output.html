@@ -30,6 +30,26 @@
                     </div>
                 </div>
                 <a class="btn btn-primary" href="/classifications" role="button">Back</a>
+                <a class="btn btn-dark" 
+                  href="/download_results/{{ image_id }}?model_id={{ model_id }}" 
+                  download 
+                  role="button">
+                  Download results
+                </a>
+
+<button id="downloadPlotBtn" class="btn btn-info">Download plot</button>
+
+<script>
+document.getElementById('downloadPlotBtn').addEventListener('click', function() {
+    var canvas = document.getElementById('classificationOutput');
+    var link = document.createElement('a');
+    link.download = '{{ image_id }}_plot.png';  // <-- nom dynamique ici
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+});
+</script>
+
+
         </div>
     </div>
     <script src="{{ "static/graph.js" }}" id="makeGraph" classification_scores="{{classification_scores}}"></script>
