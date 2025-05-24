@@ -163,4 +163,3 @@ cython_debug/
 
 # this should be downloaded during repo setup
 app/static/imagenet_subset
-app/static/uploads
