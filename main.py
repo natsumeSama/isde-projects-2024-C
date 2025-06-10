@@ -1,13 +1,13 @@
 import json
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, BackgroundTasks
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.config import Configuration
 from app.forms.classification_form import ClassificationForm
-from app.forms.upload_form import UploadClassificationForm
+from app.forms.upload_form import UploadClassificationForm, delete_folder
 from app.forms.image_histograme_form import ImageHistogrameForm
-from app.ml.classification_utils import classify_image, classify_upload_image
+from app.ml.classification_utils import classify_image
 from app.utils import list_images
 from PIL import Image, ImageEnhance
 import os
@@ -102,17 +102,25 @@ async def request_classification(request: Request):
 
 
 @app.post("/upload")
-async def request_classification(request: Request):
+async def request_classification(request: Request, background_tasks: BackgroundTasks):
     form = UploadClassificationForm(request)
     await form.load_data()
     image_id = form.image_id
+    upload_dir = form.upload_dir
+    relative_image_path = upload_dir[11:] + "/" + image_id
     model_id = form.model_id
-    classification_scores = classify_upload_image(model_id=model_id, img_id=image_id)
+    classification_scores = classify_image(
+        model_id=model_id, img_id=image_id, img_dir=upload_dir
+    )
+    if hasattr(form, "upload_dir"):
+        background_tasks.add_task(delete_folder, upload_dir)
+
     return templates.TemplateResponse(
         "upload_classification_output.html",
         {
             "request": request,
             "image_id": image_id,
+            "image_dir": relative_image_path,
             "classification_scores": json.dumps(classification_scores),
         },
     )

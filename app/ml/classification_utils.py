@@ -17,18 +17,18 @@ from app.config import Configuration
 conf = Configuration()
 
 
-def fetch_image(image_id):
-    """Gets the image from the specified ID. It returns only images
-    downloaded in the folder specified in the configuration object."""
-    image_path = os.path.join(conf.image_folder_path, image_id)
-    img = Image.open(image_path)
-    return img
+def fetch_image_by_source(image_id, image_dir=None):
+    """
+    Gets the image from the specified ID. If `image_dir` is None,
+    it uses the default configured folder. Otherwise, it uses the
+    provided `image_dir`.
 
-
-def fetch_upload_image(image_id):
-    """Gets the image from the specified ID. It returns only images
-    downloaded in the folder specified in the configuration object."""
-    image_path = os.path.join(conf.upload_image_folder_path, image_id)
+    This allows compatibility for both predefined images and uploaded ones.
+    """
+    if image_dir:
+        image_path = os.path.join(image_dir, image_id)
+    else:
+        image_path = os.path.join(conf.image_folder_path, image_id)
     img = Image.open(image_path)
     return img
 
@@ -56,49 +56,16 @@ def get_model(model_id):
         raise ImportError
 
 
-def classify_image(model_id, img_id):
-    """Returns the top-5 classification score output from the
-    model specified in model_id when it is fed with the
-    image corresponding to img_id."""
-    img = fetch_image(img_id)
-    model = get_model(model_id)
-    model.eval()
-    transform = transforms.Compose(
-        (
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        )
-    )
+def classify_image(model_id, img_id, img_dir=None):
+    """
+    Returns the top-5 classification score output from the
+    model specified in model_id when it is fed with the image.
 
-    # apply transform from torchvision
-    img = img.convert("RGB")
-    preprocessed = transform(img).unsqueeze(0)
-
-    # gets the output from the model
-    out = model(preprocessed)
-    _, indices = torch.sort(out, descending=True)
-
-    # transforms scores as percentages
-    percentage = torch.nn.functional.softmax(out, dim=1)[0] * 100
-
-    # gets the labels
-    labels = get_labels()
-
-    # takes the top-5 classification output and returns it
-    # as a list of tuples (label_name, score)
-    output = [[labels[idx], percentage[idx].item()] for idx in indices[0][:5]]
-
-    img.close()
-    return output
-
-
-def classify_upload_image(model_id, img_id):
-    """Returns the top-5 classification score output from the
-    model specified in model_id when it is fed with the
-    image corresponding to img_id."""
-    img = fetch_upload_image(img_id)
+    This is a unified function that works both for images from
+    the predefined folder and for uploaded images, based on
+    whether `img_dir` is provided.
+    """
+    img = fetch_image_by_source(img_id, img_dir)
     model = get_model(model_id)
     model.eval()
     transform = transforms.Compose(
