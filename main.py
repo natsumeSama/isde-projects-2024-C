@@ -104,26 +104,42 @@ async def request_classification(request: Request):
 @app.post("/upload")
 async def request_classification(request: Request, background_tasks: BackgroundTasks):
     form = UploadClassificationForm(request)
-    await form.load_data()
-    image_id = form.image_id
-    upload_dir = form.upload_dir
-    relative_image_path = upload_dir[11:] + "/" + image_id
-    model_id = form.model_id
-    classification_scores = classify_image(
-        model_id=model_id, img_id=image_id, img_dir=upload_dir
-    )
-    if hasattr(form, "upload_dir"):
-        background_tasks.add_task(delete_folder, upload_dir)
+    try:
+        await form.load_data()
+        image_id = form.image_id
+        upload_dir = form.upload_dir
+        relative_image_path = upload_dir[11:] + "/" + image_id
+        model_id = form.model_id
+        classification_scores = classify_image(
+            model_id=model_id, img_id=image_id, img_dir=upload_dir
+        )
+        if hasattr(form, "upload_dir"):
+            background_tasks.add_task(delete_folder, upload_dir)
 
-    return templates.TemplateResponse(
-        "upload_classification_output.html",
-        {
-            "request": request,
-            "image_id": image_id,
-            "image_dir": relative_image_path,
-            "classification_scores": json.dumps(classification_scores),
-        },
-    )
+        return templates.TemplateResponse(
+            "upload_classification_output.html",
+            {
+                "request": request,
+                "image_id": image_id,
+                "image_dir": relative_image_path,
+                "classification_scores": json.dumps(classification_scores),
+            },
+        )
+    except Exception as e:
+        print(f"Error during classification: {e}")
+        if hasattr(form, "upload_dir"):
+            background_tasks.add_task(delete_folder, form.upload_dir)
+
+        return templates.TemplateResponse(
+            "upload_classification_select.html",
+            {
+                "request": request,
+                "images": list_images(),
+                "models": Configuration.models,
+                "error_message": "Invalid file or classification error. Please try again.",
+            },
+            status_code=400,
+        )
 
 
 @app.post("/transformations", response_class=HTMLResponse)
