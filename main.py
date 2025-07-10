@@ -11,6 +11,7 @@ from app.ml.classification_utils import classify_image
 from app.utils import list_images
 from PIL import Image, ImageEnhance
 import os
+import uuid 
 
 
 app = FastAPI()
@@ -142,6 +143,8 @@ async def request_classification(request: Request, background_tasks: BackgroundT
         )
 
 
+
+
 @app.post("/transformations", response_class=HTMLResponse)
 async def apply_transformation(
     request: Request,
@@ -159,7 +162,9 @@ async def apply_transformation(
     img = ImageEnhance.Contrast(img).enhance(contrast)
     img = ImageEnhance.Sharpness(img).enhance(sharpness)
 
-    output_path = os.path.join("app", "static", "transformed_image.jpeg")
+   
+    unique_filename = f"{uuid.uuid4()}.jpeg"
+    output_path = os.path.join("app", "static", unique_filename)
     img.save(output_path)
 
     return templates.TemplateResponse(
@@ -167,7 +172,7 @@ async def apply_transformation(
         {
             "request": request,
             "original_image": image_id,
-            "transformed_image": "transformed_image.jpeg",
+            "transformed_image": unique_filename,  
         },
     )
 
