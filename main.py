@@ -64,11 +64,6 @@ def show_transformation_form(request: Request):
     )
 
 
-@app.get("/download/json/{image_id}")
-async def download_json(image_id: str):
-    classification_scores = classify_image(image_id)
-    return JSONResponse(content=classification_scores, media_type="application/json")
-
 
 @app.get("/download_results/{image_id}")
 async def download_results(image_id: str, model_id: str):
