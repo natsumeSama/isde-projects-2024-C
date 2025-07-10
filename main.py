@@ -12,6 +12,19 @@ from app.utils import list_images
 from PIL import Image, ImageEnhance
 import os
 import uuid 
+import threading
+import time
+
+
+def delete_file_later(file_path, delay=10):
+    def task():
+        time.sleep(delay)
+        try:
+            os.remove(file_path)
+            print(f"Deleted {file_path} after {delay} seconds")
+        except Exception as e:
+            print(f"Error deleting {file_path}: {e}")
+    threading.Thread(target=task).start()
 
 
 app = FastAPI()
@@ -161,6 +174,7 @@ async def apply_transformation(
     unique_filename = f"{uuid.uuid4()}.jpeg"
     output_path = os.path.join("app", "static", unique_filename)
     img.save(output_path)
+    delete_file_later(output_path, delay=10)
 
     return templates.TemplateResponse(
         "transformation_result.html",
